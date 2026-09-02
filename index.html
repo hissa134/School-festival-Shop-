@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文化祭 出店一覧ナビ 2026</title>
+  <style>
+    /* --------------------------------------------------
+       基本スタイル & レスポンシブ設定（スマホ対応）
+    -------------------------------------------------- */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f7f6;
+      color: #333;
+    }
+
+    .view-container {
+      width: 100%;
+      min-height: 100vh;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* ヘッダー */
+    header {
+      background-color: #ff7e5f;
+      color: white;
+      padding: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header.admin-header {
+      background-color: #4a69bd;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 15px;
+    }
+
+    /* スタート画面・パスワード認証画面 */
+    .start-card, .auth-card {
+      max-width: 400px;
+      margin: 60px auto 0;
+      padding: 30px 20px;
+      background: white;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+
+    .start-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 25px;
+    }
+
+    /* ボタン */
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn-primary { background: #ff7e5f; color: white; }
+    .btn-primary:hover { background: #e0684b; }
+
+    .btn-secondary { background: #4a69bd; color: white; }
+    .btn-secondary:hover { background: #3b5598; }
+
+    .btn-link { background: transparent; color: #666; margin-top: 10px; }
+
+    .btn-sm {
+      background: rgba(255,255,255,0.25);
+      color: white;
+      border: 1px solid white;
+      padding: 5px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-sm:hover { background: rgba(255,255,255,0.4); }
+
+    /* 検索エリア・入力フォーム */
+    .search-area {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"], input[type="password"], input[type="time"], select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+
+    .time-inputs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .time-inputs label {
+      flex: 1;
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    /* カードデザイン */
+    .card, .booth-card {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .booth-name {
+      margin: 0 0 8px 0;
+      color: #ff7e5f;
+      font-size: 1.2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .booth-info {
+      margin: 4px 0;
+      font-size: 0.9rem;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: bold;
+    }
+
+    .open { background: #e1f5fe; color: #0288d1; }
+    .closed { background: #ffebee; color: #c62828; }
+
+    .tag {
+      display: inline-block;
+      background: #eee;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      margin-top: 8px;
+      font-weight: bold;
+    }
+
+    .delete-btn {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      float: right;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================
+       1. スタート画面 (選択画面)
+  =========================================== -->
+  <div id="startView" class="view-container">
+    <div class="start-card">
+      <h1>🎉 文化祭ナビ 2026</h1>
+      <p>利用するモードを選択してください</p>
+      <div class="start-buttons">
+        <button id="btnToUser" class="btn btn-primary">📱 お客さん用（出店を探す）</button>
+        <button id="btnToPassword" class="btn btn-secondary">⚙️ 実行委員用（管理画面）</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       2. パスワード入力画面
+  =========================================== -->
+  <div id="passwordView" class="view-container hidden">
+    <div class="auth-card">
+      <h2>🔒 管理者認証</h2>
+      <p>パスワードを入力してください</p>
+      <form id="loginForm">
+        <input type="password" id="passwordInput" placeholder="パスワード (初期: 0000)" required>
+        <button type="submit" class="btn btn-primary" style="margin-top: 10px;">ログイン</button>
+        <button type="button" id="btnCancelLogin" class="btn btn-link">キャンセル</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       3. ユーザー画面
+  =========================================== -->
+  <div id="userView" class="view-container hidden">
+    <header>
+      <h1>🎉 出店一覧</h1>
+      <button id="btnUserToStart" class="btn-sm">🏠 TOPへ</button>
+    </header>
+
+    <div class="container">
+      <div class="search-area">
+        <input type="text" id="searchInput" placeholder="キーワードで検索 (例: チュロス, 体育館)...">
+        <select id="genreSelect"></select>
+        
+        <label class="checkbox-label">
+          <input type="checkbox" id="openOnlyCheck"> 🟢 今営業中のお店のみ表示
+        </label>
+      </div>
+      
+      <div id="boothList"></div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       4. 管理者画面
+  =========================================== -->
+  <div id="adminView" class="view-container hidden">
+    <header class="admin-header">
+      <h1>⚙️ 管理者画面</h1>
+      <button id="btnAdminToStart" class="btn-sm">🏠 TOPへ</button>
+    </header>
+
+    <div class="container">
+      <div class="card">
+        <h2>新規出店登録</h2>
+        <form id="addBoothForm">
+          <input type="text" id="addName" placeholder="出店名 (例: 1-A 揚げたてチュロス)" required style="margin-bottom: 10px;">
+          <input type="text" id="addLocation" placeholder="場所 (例: 中庭テント①)" required style="margin-bottom: 10px;">
+          
+          <div class="time-inputs">
+            <label>開始時間: <input type="time" id="addStartTime" value="10:00" required></label>
+            <label>終了時間: <input type="time" id="addEndTime" value="15:00" required></label>
+          </div>
+
+          <select id="addGenreSelect" required style="margin-bottom: 10px;"></select>
+          <input type="text" id="addDesc" placeholder="ひとこと説明" style="margin-bottom: 10px;">
+          <button type="submit" class="btn btn-primary">登録する</button>
+        </form>
+      </div>
+
+      <h2>登録済みデータ一覧</h2>
+      <div id="adminBoothList"></div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       JavaScript処理
+  =========================================== -->
+  <script>
+    // 管理者パスワード設定（※ここを変更できます）
+    const ADMIN_PASSWORD = "0000";
+
+    // ジャンル定義（※ここを追加変更するだけで全体に反映されます）
+    const GENRES = [
+      { id: "all", label: "すべてのジャンル" },
+      { id: "food", label: "🍔 飲食" },
+      { id: "game", label: "🎮 アトラクション・体験" },
+      { id: "stage", label: "🎸 ステージ" },
+      { id: "exhibition", label: "🎨 展示" },
+      { id: "sales", label: "🛍️ バザー・物販" }
+    ];
+
+    // サンプル出店データ
+    let booths = [
+      { id: 1, name: "1-A 揚げたてチュロス", location: "中庭テント①", startTime: "10:00", endTime: "15:30", genre: "food", description: "シナモン味とシュガー味！外はサクサク、中はモチモチです。" },
+      { id: 2, name: "2-B 恐怖の開かずの間", location: "南館3階 2-B教室", startTime: "09:30", endTime: "15:00", genre: "game", description: "本格派のお化け屋敷。絶対に一人では入らないでください…" },
+      { id: 3, name: "吹奏楽部 ポップスコンサート", location: "体育館ステージ", startTime: "11:00", endTime: "12:30", genre: "stage", description: "今年の大ヒット曲からアニメソングまで迫力の演奏をお届け！" },
+      { id: 4, name: "美術部 似顔絵＆作品展", location: "特別棟2階 美術室", startTime: "09:00", endTime: "15:30", genre: "exhibition", description: "部員がその場で似顔絵を描きます。作品展示も同時開催！" },
+      { id: 5, name: "3-C ストラックアウト", location: "グラウンド特設コーナー", startTime: "10:00", endTime: "16:00", genre: "game", description: "ボールを投げて的に当てよう！高得点者には豪華景品あり。" },
+      { id: 6, name: "PTA手作りパン＆バザー", location: "1階 多目的ホール", startTime: "10:00", endTime: "14:00", genre: "sales", description: "焼きたて惣菜パンとお買い得な日用品バザーです。" }
+    ];
+
+    // 画面遷移コントロール
+    function navigateTo(viewName) {
+      document.querySelectorAll('.view-container').forEach(el => el.classList.add('hidden'));
+
+      if (viewName === 'start') document.getElementById('startView').classList.remove('hidden');
+      if (viewName === 'password') {
+        document.getElementById('passwordInput').value = '';
+        document.getElementById('passwordView').classList.remove('hidden');
+      }
+      if (viewName === 'user') {
+        document.getElementById('userView').classList.remove('hidden');
+        filterBooths();
+      }
+      if (viewName === 'admin') {
+        document.getElementById('adminView').classList.remove('hidden');
+        renderAdminBooths();
+      }
+    }
+
+    // ドロップダウンリスト生成
+    function initGenreDropdowns() {
+      const userSelect = document.getElementById('genreSelect');
+      const adminSelect = document.getElementById('addGenreSelect');
+      userSelect.innerHTML = '';
+      adminSelect.innerHTML = '';
+
+      GENRES.forEach(g => {
+        userSelect.innerHTML += `<option value="${g.id}">${g.label}</option>`;
+        if (g.id !== 'all') {
+          adminSelect.innerHTML += `<option value="${g.id}">${g.label}</option>`;
+        }
+      });
+    }
+
+    // 現在時刻が営業時間内かチェック
+    function isOpenNow(startTime, endTime) {
+      const now = new Date();
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+      const [sHour, sMin] = startTime.split(':').map(Number);
+      const startMinutes = sHour * 60 + sMin;
+
+      const [eHour, eMin] = endTime.split(':').map(Number);
+      const endMinutes = eHour * 60 + eMin;
+
+      return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
+    }
+
+    function getGenreLabel(genreId) {
+      const genre = GENRES.find(g => g.id === genreId);
+      return genre ? genre.label : genreId;
+    }
+
+    // ユーザー画面描画＆検索フィルター
+    function filterBooths() {
+      const keyword = document.getElementById('searchInput').value.toLowerCase();
+      const genre = document.getElementById('genreSelect').value;
+      const openOnly = document.getElementById('openOnlyCheck').checked;
+
+      const filtered = booths.filter(booth => {
+        const matchKeyword = booth.name.toLowerCase().includes(keyword) || booth.description.toLowerCase().includes(keyword);
+        const matchGenre = genre === 'all' || booth.genre === genre;
+        const matchOpen = !openOnly || isOpenNow(booth.startTime, booth.endTime);
+
+        return matchKeyword && matchGenre && matchOpen;
+      });
+
+      renderUserBooths(filtered);
+    }
+
+    function renderUserBooths(data) {
+      const list = document.getElementById('boothList');
+      list.innerHTML = '';
+
+      if (data.length === 0) {
+        list.innerHTML = '<p style="text-align:center; color:#888; padding:20px;">該当する出店が見つかりません😢</p>';
+        return;
+      }
+
+      data.forEach(booth => {
+        const open = isOpenNow(booth.startTime, booth.endTime);
+        const badgeHtml = open 
+          ? '<span class="status-badge open">🟢 営業中</span>' 
+          : '<span class="status-badge closed">🔴 営業時間外</span>';
+
+        const card = document.createElement('div');
+        card.className = 'booth-card';
+        card.innerHTML = `
+          <h2 class="booth-name"><span>${booth.name}</span> ${badgeHtml}</h2>
+          <p class="booth-info">📍 場所: ${booth.location}</p>
+          <p class="booth-info">⏰ 時間: ${booth.startTime} - ${booth.endTime}</p>
+          <p class="booth-info" style="color:#555;">💬 ${booth.description}</p>
+          <span class="tag">${getGenreLabel(booth.genre)}</span>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    // 管理者画面描画
+    function renderAdminBooths() {
+      const list = document.getElementById('adminBoothList');
+      list.innerHTML = '';
+
+      booths.forEach(booth => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <button class="delete-btn" onclick="deleteBooth(${booth.id})">削除</button>
+          <strong>${booth.name}</strong> (${getGenreLabel(booth.genre)})<br>
+          <small>📍 ${booth.location} | ⏰ ${booth.startTime}～${booth.endTime}</small>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    // 出店削除処理
+    window.deleteBooth = function(id) {
+      if (confirm("この出店データを削除してもよろしいですか？")) {
+        booths = booths.filter(b => b.id !== id);
+        renderAdminBooths();
+      }
+    };
+
+    // 初期化とイベント設定
+    document.addEventListener('DOMContentLoaded', () => {
+      initGenreDropdowns();
+
+      // ナビゲーションのイベント登録
+      document.getElementById('btnToUser').addEventListener('click', () => navigateTo('user'));
+      document.getElementById('btnToPassword').addEventListener('click', () => navigateTo('password'));
+      document.getElementById('btnUserToStart').addEventListener('click', () => navigateTo('start'));
+      document.getElementById('btnAdminToStart').addEventListener('click', () => navigateTo('start'));
+      document.getElementById('btnCancelLogin').addEventListener('click', () => navigateTo('start'));
+
+      // ログインフォーム処理
+      document.getElementById('loginForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const input = document.getElementById('passwordInput').value;
+        if (input === ADMIN_PASSWORD) {
+          navigateTo('admin');
+        } else {
+          alert("パスワードが違います");
+        }
+      });
+
+      // 検索フィルター処理
+      document.getElementById('searchInput').addEventListener('input', filterBooths);
+      document.getElementById('genreSelect').addEventListener('change', filterBooths);
+      document.getElementById('openOnlyCheck').addEventListener('change', filterBooths);
+
+      // 新規追加フォーム処理
+      document.getElementById('addBoothForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const newBooth = {
+          id: Date.now(),
+          name: document.getElementById('addName').value,
+          location: document.getElementById('addLocation').value,
+          startTime: document.getElementById('addStartTime').value,
+          endTime: document.getElementById('addEndTime').value,
+          genre: document.getElementById('addGenreSelect').value,
+          description: document.getElementById('addDesc').value
+        };
+        booths.push(newBooth);
+        document.getElementById('addBoothForm').reset();
+        renderAdminBooths();
+        alert("登録が完了しました！");
+      });
+
+      // スタート画面で開始
+      navigateTo('start');
+    });
+  </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文化祭 出店一覧ナビ 2026</title>
+  <style>
+    /* --------------------------------------------------
+       基本スタイル & レスポンシブ設定（スマホ対応）
+    -------------------------------------------------- */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f7f6;
+      color: #333;
+    }
+
+    .view-container {
+      width: 100%;
+      min-height: 100vh;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* ヘッダー */
+    header {
+      background-color: #ff7e5f;
+      color: white;
+      padding: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header.admin-header {
+      background-color: #4a69bd;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 15px;
+    }
+
+    /* スタート画面・パスワード認証画面 */
+    .start-card, .auth-card {
+      max-width: 400px;
+      margin: 60px auto 0;
+      padding: 30px 20px;
+      background: white;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+
+    .start-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 25px;
+    }
+
+    /* ボタン */
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn-primary { background: #ff7e5f; color: white; }
+    .btn-primary:hover { background: #e0684b; }
+
+    .btn-secondary { background: #4a69bd; color: white; }
+    .btn-secondary:hover { background: #3b5598; }
+
+    .btn-link { background: transparent; color: #666; margin-top: 10px; }
+
+    .btn-sm {
+      background: rgba(255,255,255,0.25);
+      color: white;
+      border: 1px solid white;
+      padding: 5px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-sm:hover { background: rgba(255,255,255,0.4); }
+
+    /* 検索エリア・入力フォーム */
+    .search-area {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"], input[type="password"], input[type="time"], select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+
+    .time-inputs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .time-inputs label {
+      flex: 1;
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    /* カードデザイン */
+    .card, .booth-card {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .booth-name {
+      margin: 0 0 8px 0;
+      color: #ff7e5f;
+      font-size: 1.2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .booth-info {
+      margin: 4px 0;
+      font-size: 0.9rem;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: bold;
+    }
+
+    .open { background: #e1f5fe; color: #0288d1; }
+    .closed { background: #ffebee; color: #c62828; }
+
+    .tag {
+      display: inline-block;
+      background: #eee;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      margin-top: 8px;
+      font-weight: bold;
+    }
+
+    .delete-btn {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      float: right;
+    }
+  </style>
+</head>
+<body>
+
+ 
